@@ -22,11 +22,12 @@ A TQL-style freight brokerage management application built with React.js, C# .NE
 ```
 truck-logistics/
 ├── backend/
-│   └── TruckLogistics.API/     # ASP.NET Core Web API
-│       ├── Controllers/        # Loads, Carriers, Drivers endpoints
-│       ├── Models/             # EF Core entities
-│       ├── Data/               # DbContext
-│       └── DTOs/               # Request/response shapes
+│   ├── TruckLogistics.API/     # ASP.NET Core Web API
+│   │   ├── Controllers/        # Loads, Carriers, Drivers endpoints
+│   │   ├── Models/             # EF Core entities
+│   │   ├── Data/               # DbContext
+│   │   └── DTOs/               # Request/response shapes
+│   └── TruckLogistics.API.Tests/  # xUnit integration tests (in-memory SQLite)
 ├── frontend/
 │   └── src/
 │       ├── pages/              # Dashboard, Loads, Carriers, Drivers
@@ -75,6 +76,16 @@ npm install
 npm start
 # Runs at http://localhost:3000 (calls the API at http://localhost:5050/api)
 ```
+
+## Tests
+
+The API tests start the real API against a private in-memory SQLite database, so they never touch `trucklogistics.db`:
+
+```bash
+dotnet test backend/TruckLogistics.sln
+```
+
+If the API is already running locally, add `-c Release` so the test build doesn't collide with the running process. CI runs these tests plus a frontend build on every pull request.
 
 ## API Endpoints
 
