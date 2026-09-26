@@ -25,3 +25,8 @@ Thumbs.db
 # IDE
 .idea/
 *.swp
+
+# Local SQLite database (created on first run; seed with scripts/seed-sample-data.ps1)
+*.db
+*.db-shm
+*.db-wal
