@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -14,6 +16,9 @@ namespace TruckLogistics.API.Tests;
 /// </summary>
 public class ApiFactory : WebApplicationFactory<Program>
 {
+    public const string AdminEmail = "test-admin@example.com";
+    public const string AdminPassword = "Test-Admin-Pass1!";
+
     // An in-memory SQLite database lives only as long as its connection is open
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
 
@@ -23,6 +28,8 @@ public class ApiFactory : WebApplicationFactory<Program>
     {
         // Development mode makes Program.cs call EnsureCreated on startup
         builder.UseEnvironment("Development");
+        builder.UseSetting("AdminAccount:Email", AdminEmail);
+        builder.UseSetting("AdminAccount:Password", AdminPassword);
 
         builder.ConfigureServices(services =>
         {
@@ -30,6 +37,19 @@ public class ApiFactory : WebApplicationFactory<Program>
             services.AddDbContext<AppDbContext>(options => options.UseSqlite(_connection));
         });
     }
+
+    /// <summary>Signs in and returns a client that sends the bearer token.</summary>
+    public async Task<HttpClient> CreateSignedInClientAsync(string email = AdminEmail, string password = AdminPassword)
+    {
+        var client = CreateClient();
+        var response = await client.PostAsJsonAsync("/api/auth/login", new { email, password });
+        response.EnsureSuccessStatusCode();
+        var token = (await response.Content.ReadFromJsonAsync<TokenResponse>())!;
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+        return client;
+    }
+
+    private record TokenResponse(string AccessToken);
 
     protected override void Dispose(bool disposing)
     {

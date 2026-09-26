@@ -3,14 +3,18 @@ using TruckLogistics.API.DTOs;
 
 namespace TruckLogistics.API.Tests;
 
-public class CarriersAndDriversApiTests : IDisposable
+public class CarriersAndDriversApiTests : IAsyncLifetime
 {
     private readonly ApiFactory _factory = new();
-    private readonly HttpClient _client;
+    private HttpClient _client = null!;
 
-    public CarriersAndDriversApiTests() => _client = _factory.CreateClient();
+    public async Task InitializeAsync() => _client = await _factory.CreateSignedInClientAsync();
 
-    public void Dispose() => _factory.Dispose();
+    public Task DisposeAsync()
+    {
+        _factory.Dispose();
+        return Task.CompletedTask;
+    }
 
     [Fact]
     public async Task GetCarrier_CountsItsDrivers()
