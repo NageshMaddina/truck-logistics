@@ -54,7 +54,9 @@ dotnet run
 # Swagger UI: http://localhost:5050/swagger
 ```
 
-On first run in Development mode the API creates `trucklogistics.db` (via `EnsureCreated`). The database file is git-ignored; delete it to start fresh.
+On startup the API creates `trucklogistics.db` if needed and applies any pending EF Core migrations. The database file is git-ignored; delete it to start fresh.
+
+> **Upgrading from an older checkout?** Databases created before migrations were introduced can't be upgraded. The API will stop with a message telling you to delete `trucklogistics.db` (plus its `-shm`/`-wal` files) and reseed.
 
 ### 2. Sample data (optional)
 
@@ -84,6 +86,17 @@ dotnet test backend/TruckLogistics.sln
 ```
 
 If the API is already running locally, add `-c Release` so the test build doesn't collide with the running process. CI runs these tests plus a frontend build on every pull request.
+
+## Changing the data model
+
+The schema is managed with EF Core migrations in `backend/TruckLogistics.API/Data/Migrations`. After changing a model or `AppDbContext`, add a migration (stop the running API first):
+
+```bash
+dotnet tool restore
+dotnet ef migrations add <DescriptiveName> --project backend/TruckLogistics.API --output-dir Data/Migrations
+```
+
+The API applies it on next startup. CI fails if the model changes without a matching migration.
 
 ## API Endpoints
 

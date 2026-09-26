@@ -20,6 +20,10 @@ jobs:
         run: dotnet build backend/TruckLogistics.sln --no-restore --configuration Release
       - name: Test
         run: dotnet test backend/TruckLogistics.sln --no-build --configuration Release
+      - name: Check for model changes without a migration
+        run: |
+          dotnet tool restore
+          dotnet ef migrations has-pending-model-changes --project backend/TruckLogistics.API --configuration Release --no-build
 
   frontend:
     name: Frontend (React)
