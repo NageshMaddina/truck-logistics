@@ -1,12 +1,12 @@
 # TruckLogix — Truck Logistics Management System
 
-A TQL-style freight brokerage management application built with React.js, C# .NET 8, and SQL Server.
+A TQL-style freight brokerage management application built with React.js, C# .NET 8, and SQLite.
 
 ## Tech Stack
 
 - **Frontend**: React.js 18 with React Router v6
 - **Backend**: ASP.NET Core 8 Web API with Entity Framework Core
-- **Database**: SQL Server with EF Core migrations
+- **Database**: SQLite (file-based, created automatically on first run)
 
 ## Features
 
@@ -31,38 +31,41 @@ truck-logistics/
 │   └── src/
 │       ├── pages/              # Dashboard, Loads, Carriers, Drivers
 │       └── services/           # Axios API client
-└── database/
-    └── schema.sql              # SQL Server DDL + seed data
+├── database/
+│   └── schema.sql              # Legacy SQL Server DDL + seed data (not used by the SQLite setup)
+└── scripts/
+    └── seed-sample-data.ps1    # Seeds sample data through the API
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or newer (a newer SDK can build the `net8.0` target; the .NET 8 runtime is required to run it)
 - [Node.js 18+](https://nodejs.org/)
-- [SQL Server](https://www.microsoft.com/en-us/sql-server) (LocalDB works fine)
 
-### 1. Database
+No database server is needed — the API uses a local SQLite file.
 
-Run `database/schema.sql` in SQL Server Management Studio or `sqlcmd`:
-
-```bash
-sqlcmd -S localhost -i database/schema.sql
-```
-
-Or let EF Core create the DB automatically on first run (the API calls `EnsureCreated` in dev mode).
-
-### 2. Backend
+### 1. Backend
 
 ```bash
 cd backend/TruckLogistics.API
-# Update connection string in appsettings.json if needed
-dotnet restore
 dotnet run
-# API runs at https://localhost:7000 / http://localhost:5000
-# Swagger UI: http://localhost:5000/swagger
+# API runs at http://localhost:5050
+# Swagger UI: http://localhost:5050/swagger
 ```
+
+On first run in Development mode the API creates `trucklogistics.db` (via `EnsureCreated`). The database file is git-ignored; delete it to start fresh.
+
+### 2. Sample data (optional)
+
+With the API running, seed carriers, drivers and loads:
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/seed-sample-data.ps1
+```
+
+The script skips seeding if data already exists; pass `-Force` to seed anyway.
 
 ### 3. Frontend
 
@@ -70,7 +73,7 @@ dotnet run
 cd frontend
 npm install
 npm start
-# Runs at http://localhost:3000
+# Runs at http://localhost:3000 (calls the API at http://localhost:5050/api)
 ```
 
 ## API Endpoints

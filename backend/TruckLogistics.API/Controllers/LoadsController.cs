@@ -255,9 +255,11 @@ public class LoadsController : ControllerBase
             Booked = await _db.Loads.CountAsync(l => l.Status == "Booked"),
             InTransit = await _db.Loads.CountAsync(l => l.Status == "InTransit"),
             Delivered = await _db.Loads.CountAsync(l => l.Status == "Delivered"),
-            TotalRevenue = await _db.Loads
+            // SQLite can't SUM decimals server-side, so aggregate in memory
+            TotalRevenue = (await _db.Loads
                 .Where(l => l.Status == "Delivered")
-                .SumAsync(l => l.Rate ?? 0)
+                .Select(l => l.Rate ?? 0)
+                .ToListAsync()).Sum()
         };
         return Ok(stats);
     }
