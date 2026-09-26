@@ -119,7 +119,18 @@ public class LoadsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<LoadDto>> CreateLoad(CreateLoadDto dto)
     {
-        var loadNumber = "TL-" + DateTime.UtcNow.Year + "-" + (_db.Loads.Count() + 1).ToString("D4");
+        // Next number after the highest one this year. Using Count() + 1 reused
+        // numbers after a delete and hit the unique index on LoadNumber.
+        var prefix = "TL-" + DateTime.UtcNow.Year + "-";
+        var existing = await _db.Loads
+            .Where(l => l.LoadNumber.StartsWith(prefix))
+            .Select(l => l.LoadNumber)
+            .ToListAsync();
+        var lastSeq = existing
+            .Select(n => int.TryParse(n.AsSpan(prefix.Length), out var seq) ? seq : 0)
+            .DefaultIfEmpty(0)
+            .Max();
+        var loadNumber = prefix + (lastSeq + 1).ToString("D4");
         var load = new Load
         {
             LoadNumber = loadNumber,
