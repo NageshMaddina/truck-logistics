@@ -31,8 +31,6 @@ truck-logistics/
 │   └── src/
 │       ├── pages/              # Dashboard, Loads, Carriers, Drivers
 │       └── services/           # Axios API client
-├── database/
-│   └── schema.sql              # Legacy SQL Server DDL + seed data (not used by the SQLite setup)
 └── scripts/
     └── seed-sample-data.ps1    # Seeds sample data through the API
 ```
