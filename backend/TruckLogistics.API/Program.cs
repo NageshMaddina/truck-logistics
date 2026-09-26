@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using TruckLogistics.API.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,10 +10,29 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "Truck Logistics API", Version = "v1" });
+
+    // Lets Swagger UI send the token from POST /api/auth/login ("Authorize" button)
+    var bearer = new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+    };
+    c.AddSecurityDefinition("Bearer", bearer);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement { [bearer] = Array.Empty<string>() });
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Username/password accounts with bearer tokens; accounts are created by admins only
+builder.Services.AddAuthentication(IdentityConstants.BearerScheme)
+    .AddBearerToken(IdentityConstants.BearerScheme, o => o.BearerTokenExpiration = TimeSpan.FromHours(8));
+builder.Services.AddAuthorization();
+builder.Services.AddIdentityCore<IdentityUser>(o => o.User.RequireUniqueEmail = true)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddSignInManager();
 
 builder.Services.AddCors(options =>
 {
@@ -41,6 +62,8 @@ using (var scope = app.Services.CreateScope())
             "(and its -shm/-wal files), restart the API, then reseed with scripts/seed-sample-data.ps1.");
 
     db.Database.Migrate();
+
+    await IdentitySeeder.EnsureAdminAsync(scope.ServiceProvider, app.Configuration, app.Logger);
 }
 
 if (app.Environment.IsDevelopment())
@@ -50,8 +73,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowReact");
+app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+// Every endpoint requires a signed-in user unless marked [AllowAnonymous]
+app.MapControllers().RequireAuthorization();
 
 app.Run();
 

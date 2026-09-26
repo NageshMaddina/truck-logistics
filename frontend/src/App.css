@@ -325,3 +325,21 @@ tbody td { padding: 14px 16px; color: var(--text); }
   .form-grid, .form-grid-3, .detail-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ===== Sign-in ===== */
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--bg); }
+.login-card { width: 100%; max-width: 380px; padding: 32px; }
+.login-logo { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--primary); margin-bottom: 4px; }
+.login-subtitle { text-align: center; color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+.login-button { width: 100%; justify-content: center; padding: 10px; margin-top: 4px; }
+.login-hint { text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 16px; }
+
+.form-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+
+/* ===== Signed-in user (sidebar footer) ===== */
+.sidebar-user { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 13px; }
+.sidebar-user-email { color: white; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 8px; }
+.sidebar-user-actions { display: flex; gap: 12px; }
+.sidebar-user-actions button { background: none; border: none; padding: 0; color: rgba(255,255,255,0.7); font-size: 12px; cursor: pointer; }
+.sidebar-user-actions button:hover { color: white; text-decoration: underline; }

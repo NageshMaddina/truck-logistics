@@ -6,17 +6,33 @@
   Loads are walked through the real workflow (book -> pick up -> deliver) so
   statuses, driver availability and tracking history stay consistent.
   Skips seeding if the database already has carriers, unless -Force is given.
+  Signs in first; by default uses the local development admin from
+  backend/TruckLogistics.API/appsettings.Development.json.
 .EXAMPLE
   ./scripts/seed-sample-data.ps1
   ./scripts/seed-sample-data.ps1 -ApiUrl http://localhost:5050/api -Force
+  ./scripts/seed-sample-data.ps1 -Email someone@example.com -Password '...'
 #>
 param(
   [string]$ApiUrl = 'http://localhost:5050/api',
+  [string]$Email,
+  [string]$Password,
   [switch]$Force
 )
 
 $ErrorActionPreference = 'Stop'
 $api = $ApiUrl.TrimEnd('/')
+
+if (-not $Email -or -not $Password) {
+  $devSettings = Join-Path $PSScriptRoot '..\backend\TruckLogistics.API\appsettings.Development.json'
+  $devAdmin = (Get-Content $devSettings -Raw | ConvertFrom-Json).AdminAccount
+  if (-not $Email) { $Email = $devAdmin.Email }
+  if (-not $Password) { $Password = $devAdmin.Password }
+}
+$login = Invoke-RestMethod -Method Post -Uri "$api/auth/login" -ContentType 'application/json' `
+  -Body (@{ email = $Email; password = $Password } | ConvertTo-Json)
+# Send the token with every API call below
+$PSDefaultParameterValues['Invoke-RestMethod:Headers'] = @{ Authorization = "Bearer $($login.accessToken)" }
 
 $existing = @(Invoke-RestMethod "$api/carriers" | ForEach-Object { $_ })
 if ($existing.Count -gt 0 -and -not $Force) {

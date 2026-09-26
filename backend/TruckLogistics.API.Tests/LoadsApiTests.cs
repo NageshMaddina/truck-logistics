@@ -4,14 +4,18 @@ using TruckLogistics.API.DTOs;
 
 namespace TruckLogistics.API.Tests;
 
-public class LoadsApiTests : IDisposable
+public class LoadsApiTests : IAsyncLifetime
 {
     private readonly ApiFactory _factory = new();
-    private readonly HttpClient _client;
+    private HttpClient _client = null!;
 
-    public LoadsApiTests() => _client = _factory.CreateClient();
+    public async Task InitializeAsync() => _client = await _factory.CreateSignedInClientAsync();
 
-    public void Dispose() => _factory.Dispose();
+    public Task DisposeAsync()
+    {
+        _factory.Dispose();
+        return Task.CompletedTask;
+    }
 
     [Fact]
     public async Task Stats_OnEmptyDatabase_ReturnsZeros()

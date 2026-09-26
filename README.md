@@ -66,7 +66,7 @@ With the API running, seed carriers, drivers and loads:
 powershell -ExecutionPolicy Bypass -File scripts/seed-sample-data.ps1
 ```
 
-The script skips seeding if data already exists; pass `-Force` to seed anyway.
+The script signs in as the local development admin (see below) and skips seeding if data already exists; pass `-Force` to seed anyway, or `-Email`/`-Password` to sign in as someone else.
 
 ### 3. Frontend
 
@@ -76,6 +76,24 @@ npm install
 npm start
 # Runs at http://localhost:3000 (calls the API at http://localhost:5050/api)
 ```
+
+## Accounts and sign-in
+
+Every API endpoint and page requires signing in. There is no public sign-up: administrators create accounts on the **Users** page and share a temporary password, and users can change it via **Change password** in the sidebar.
+
+**The first admin** is created automatically on startup when the database has no users, from the `AdminAccount:Email` and `AdminAccount:Password` settings:
+
+- **Local development:** these come from `backend/TruckLogistics.API/appsettings.Development.json`, so you can sign in straight away with the account defined there. It is for local use only.
+- **Shared server:** don't run in Development mode. Set the settings as environment variables before the first start, then sign in and change the password:
+
+  ```bash
+  AdminAccount__Email=you@company.com
+  AdminAccount__Password=<a strong temporary password>
+  ```
+
+  Once an account exists, these settings are ignored and can be removed.
+
+Passwords need at least 6 characters with upper and lower case letters, a number and a symbol. After 5 failed sign-ins an account is locked for 5 minutes. Sign-ins last 8 hours.
 
 ## Tests
 
@@ -115,6 +133,15 @@ The API applies it on next startup. CI fails if the model changes without a matc
 | GET | `/api/drivers` | List drivers |
 | POST | `/api/drivers` | Create driver |
 | PATCH | `/api/drivers/{id}/availability` | Toggle availability |
+| POST | `/api/auth/login` | Sign in (no token needed); returns a bearer token |
+| GET | `/api/auth/me` | Current user's email and admin flag |
+| POST | `/api/auth/change-password` | Change own password |
+| GET | `/api/users` | List users (admin) |
+| POST | `/api/users` | Create user (admin) |
+| POST | `/api/users/{id}/reset-password` | Set a new temporary password (admin) |
+| DELETE | `/api/users/{id}` | Delete user (admin, not yourself) |
+
+All endpoints except login require an `Authorization: Bearer <accessToken>` header. In Swagger UI, sign in via `POST /api/auth/login`, then paste the `accessToken` into **Authorize**.
 
 ## Load Statuses
 
