@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { driversApi, carriersApi } from '../services/api';
 
 function DriverModal({ driver, carriers, onClose, onSaved }) {
@@ -78,7 +78,7 @@ export default function Drivers() {
   const [filterAvailable, setFilterAvailable] = useState('');
   const [modal, setModal] = useState(null);
 
-  const fetchDrivers = () => {
+  const fetchDrivers = useCallback(() => {
     setLoading(true);
     driversApi.getAll({
       carrierId: filterCarrier || undefined,
@@ -87,13 +87,13 @@ export default function Drivers() {
       .then(r => setDrivers(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [filterCarrier, filterAvailable]);
 
   useEffect(() => {
     carriersApi.getAll().then(r => setCarriers(r.data));
   }, []);
 
-  useEffect(() => { fetchDrivers(); }, [filterCarrier, filterAvailable]);
+  useEffect(() => { fetchDrivers(); }, [fetchDrivers]);
 
   const toggleAvailability = async (driver, e) => {
     e.stopPropagation();

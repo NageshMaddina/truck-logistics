@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadsApi, carriersApi, driversApi } from '../services/api';
 
@@ -142,21 +142,20 @@ export default function Loads() {
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreate, setShowCreate] = useState(false);
 
-  const fetchLoads = () => {
+  const fetchLoads = useCallback(() => {
     setLoading(true);
     loadsApi.getAll({ search: search || undefined, status: statusFilter || undefined })
       .then(r => setLoads(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [search, statusFilter]);
 
   useEffect(() => {
-    fetchLoads();
     carriersApi.getAll().then(r => setCarriers(r.data));
     driversApi.getAll().then(r => setDrivers(r.data));
   }, []);
 
-  useEffect(() => { fetchLoads(); }, [search, statusFilter]);
+  useEffect(() => { fetchLoads(); }, [fetchLoads]);
 
   return (
     <div className="page">
