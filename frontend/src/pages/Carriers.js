@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { carriersApi } from '../services/api';
 
 function CarrierModal({ carrier, onClose, onSaved }) {
@@ -89,15 +89,15 @@ export default function Carriers() {
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null); // null | 'create' | carrier obj
 
-  const fetch = () => {
+  const fetch = useCallback(() => {
     setLoading(true);
     carriersApi.getAll({ search: search || undefined })
       .then(r => setCarriers(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [search]);
 
-  useEffect(() => { fetch(); }, [search]);
+  useEffect(() => { fetch(); }, [fetch]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Deactivate this carrier?')) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { loadsApi, carriersApi, driversApi } from '../services/api';
 
@@ -17,14 +17,15 @@ export default function LoadDetail() {
   const [showTracking, setShowTracking] = useState(false);
   const [trackingForm, setTrackingForm] = useState({ eventType: 'InTransit', city: '', state: '', notes: '', eventTime: new Date().toISOString().slice(0,16) });
 
-  const fetchLoad = () =>
-    loadsApi.getById(id).then(r => setLoad(r.data)).catch(() => navigate('/loads'));
+  const fetchLoad = useCallback(() =>
+    loadsApi.getById(id).then(r => setLoad(r.data)).catch(() => navigate('/loads')),
+  [id, navigate]);
 
   useEffect(() => {
     Promise.all([fetchLoad(), carriersApi.getAll(), driversApi.getAll()])
       .then(([, cRes, dRes]) => { setCarriers(cRes.data); setDrivers(dRes.data); })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [fetchLoad]);
 
   const handleAssign = async (field, value) => {
     setSaving(true);
